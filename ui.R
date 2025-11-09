@@ -11,7 +11,7 @@ fluidPage(
       numericInput(
         "num_balls",
         "Number of Dough Balls",
-        value = 4,
+        value = 3,
         min = 1,
         step = 1
       ),
