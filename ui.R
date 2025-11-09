@@ -28,8 +28,8 @@ fluidPage(
       sliderInput(
         "hydration",
         "Hydration % (Water)",
-        min = 50,
-        max = 90,
+        min = 55,
+        max = 75,
         value = 65,
         post = "%"
       ),
