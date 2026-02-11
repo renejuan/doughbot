@@ -2,10 +2,20 @@ library(shiny)
 library(DT)
 
 function(input, output, session) {
+  per_pizza_weight <- reactive({
+    if (isTRUE(input$size_mode == "diameter")) {
+      req(input$pizza_diameter, input$g_per_sq_in)
+      pi * (input$pizza_diameter / 2)^2 * input$g_per_sq_in
+    } else {
+      req(input$ball_weight)
+      input$ball_weight
+    }
+  })
+
   # Reactive for total target weight
   total_target_weight <- reactive({
-    req(input$num_balls, input$ball_weight)
-    input$num_balls * input$ball_weight
+    req(input$num_balls, per_pizza_weight())
+    input$num_balls * per_pizza_weight()
   })
 
   # Reactive for Baker's Math total percentage
@@ -63,13 +73,25 @@ function(input, output, session) {
   # --- Outputs ---
 
   output$recipe_title <- renderText({
-    paste(
-      "Recipe for",
-      input$num_balls,
-      "pizza(s) at",
-      input$ball_weight,
-      "g each"
-    )
+    if (isTRUE(input$size_mode == "diameter")) {
+      paste(
+        "Recipe for",
+        input$num_balls,
+        "pizza(s) at",
+        input$pizza_diameter,
+        "in each (~",
+        round(per_pizza_weight()),
+        "g each)"
+      )
+    } else {
+      paste(
+        "Recipe for",
+        input$num_balls,
+        "pizza(s) at",
+        input$ball_weight,
+        "g each"
+      )
+    }
   })
 
   output$recipe_table <- renderDT({
@@ -77,25 +99,43 @@ function(input, output, session) {
 
     datatable(
       dat,
-      options = list(dom = 't', pageLength = 10), # Simple table, no search/pagination needed
+      options = list(
+        dom = 't',
+        pageLength = 10,
+        columnDefs = list(
+          list(visible = FALSE, targets = c(2))
+        )
+      ), # Simple table, no search/pagination needed
       rownames = FALSE,
       colnames = c("Ingredient", "Weight (g)", "Baker's %")
     ) %>%
-      formatRound(columns = c("Grams"), digits = 1) %>%
+      formatRound(columns = c("Grams"), digits = 0) %>%
       formatString(columns = c("Bakers_Percent"), suffix = "%")
   })
 
   output$total_dough_weight <- renderText({
-    paste(
-      "Total Dough Weight:",
-      format(round(total_target_weight(), 1), big.mark = ","),
-      "g"
-    )
+    if (isTRUE(input$size_mode == "diameter")) {
+      paste0(
+        "Total Dough Weight: ",
+        format(round(total_target_weight(), 1), big.mark = ","),
+        "g (",
+        round(per_pizza_weight(), 1),
+        "g per ",
+        input$pizza_diameter,
+        " in pizza)"
+      )
+    } else {
+      paste0(
+        "Total Dough Weight: ",
+        format(round(total_target_weight(), 1), big.mark = ","),
+        "g"
+      )
+    }
   })
 
   output$hydration_summary <- renderText({
-    paste(
-      "Hydration Level:",
+    paste0(
+      "Hydration Level: ",
       input$hydration,
       "% (",
       ifelse(
@@ -113,8 +153,11 @@ function(input, output, session) {
 
   # Reset button observer
   observeEvent(input$reset, {
+    updateRadioButtons(session, "size_mode", selected = "weight")
     updateNumericInput(session, "num_balls", value = 4)
     updateNumericInput(session, "ball_weight", value = 250)
+    updateNumericInput(session, "pizza_diameter", value = 12)
+    updateNumericInput(session, "g_per_sq_in", value = 2.2)
     updateSliderInput(session, "hydration", value = 65)
     updateNumericInput(session, "salt_pct", value = 2.0)
     updateNumericInput(session, "yeast_pct", value = 0.6)

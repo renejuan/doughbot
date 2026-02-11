@@ -8,6 +8,15 @@ fluidPage(
   sidebarLayout(
     sidebarPanel(
       h4("Target Settings"),
+      radioButtons(
+        "size_mode",
+        "Size Input Method",
+        choices = c(
+          "Diameter (inches)" = "diameter",
+          "Weight per Ball" = "weight"
+        ),
+        selected = "diameter"
+      ),
       numericInput(
         "num_balls",
         "Number of Dough Balls",
@@ -15,14 +24,34 @@ fluidPage(
         min = 1,
         step = 1
       ),
-      numericInput(
-        "ball_weight",
-        "Weight per Ball (g)",
-        value = 250,
-        min = 50,
-        step = 5
+      conditionalPanel(
+        condition = "input.size_mode === 'weight'",
+        numericInput(
+          "ball_weight",
+          "Weight per Ball (g)",
+          value = 250,
+          min = 50,
+          step = 5
+        )
       ),
-      helpText("Standard Neapolitan is ~250g"),
+      conditionalPanel(
+        condition = "input.size_mode === 'diameter'",
+        numericInput(
+          "pizza_diameter",
+          "Pizza Diameter (inches)",
+          value = 12,
+          min = 6,
+          step = 0.5
+        ),
+        numericInput(
+          "g_per_sq_in",
+          "Dough Weight per sq in (g)",
+          value = 2.2,
+          min = 0.5,
+          step = 0.1
+        )
+      ),
+      helpText("12 inch pizza at 2.2 g/sq in is about 250g dough"),
       hr(),
       h4("Baker's Percentages"),
       sliderInput(
