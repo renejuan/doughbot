@@ -30,8 +30,11 @@ page_navbar(
 
   nav_panel(
     "Calculator",
-    sidebarLayout(
-      sidebarPanel(
+    layout_sidebar(
+      sidebar = sidebar(
+        title = "Calculator Controls",
+        open = "open",
+        width = 360,
         h4("Target Settings"),
         radioButtons(
           "size_mode",
@@ -122,14 +125,13 @@ page_navbar(
         hr(),
         actionButton("reset", "Reset to Defaults", icon = icon("undo"))
       ),
-
-      mainPanel(
-        h3(textOutput("recipe_title")),
-        hr(),
-        DTOutput("recipe_table"),
-        br(),
-        wellPanel(
-          h4("Dough Summary"),
+      h3(textOutput("recipe_title")),
+      hr(),
+      DTOutput("recipe_table"),
+      br(),
+      card(
+        card_header("Dough Summary"),
+        card_body(
           textOutput("total_dough_weight"),
           textOutput("hydration_summary")
         )
