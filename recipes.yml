@@ -1,0 +1,16 @@
+recipes:
+  - name: Margarita
+    ingredients:
+      - Pizza dough
+      - Crushed tomatoes
+      - Fresh mozzarella
+      - Fresh basil leaves
+      - Extra virgin olive oil
+  - name: Caprichosa
+    ingredients:
+      - Pizza dough
+      - Tomato sauce
+      - Mozzarella
+      - Cooked ham
+      - Mushrooms
+      - Black olives
