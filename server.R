@@ -70,6 +70,15 @@ function(input, output, session) {
     df
   })
 
+  flour_weight <- reactive({
+    dat <- recipe_data()
+    flour_row <- dat$Grams[dat$Ingredient == "Flour (100%)"]
+    if (length(flour_row) == 0) {
+      return(NA_real_)
+    }
+    flour_row[[1]]
+  })
+
   # --- Outputs ---
 
   output$recipe_title <- renderText({
@@ -78,7 +87,7 @@ function(input, output, session) {
         "Recipe for",
         input$num_balls,
         "pizza(s) at",
-        input$pizza_diameter,
+        round(input$pizza_diameter),
         "in each (~",
         round(per_pizza_weight()),
         "g each)"
@@ -100,16 +109,17 @@ function(input, output, session) {
     datatable(
       dat,
       options = list(
-        dom = 't',
-        pageLength = 10,
-        columnDefs = list(
-          list(visible = FALSE, targets = c(2))
-        )
-      ), # Simple table, no search/pagination needed
+        dom = "t",
+        paging = FALSE,
+        ordering = FALSE,
+        info = FALSE,
+        autoWidth = TRUE,
+        scrollX = TRUE
+      ),
       rownames = FALSE,
       colnames = c("Ingredient", "Weight (g)", "Baker's %")
     ) %>%
-      formatRound(columns = c("Grams"), digits = 0) %>%
+      formatRound(columns = c("Grams", "Bakers_Percent"), digits = 0) %>%
       formatString(columns = c("Bakers_Percent"), suffix = "%")
   })
 
@@ -117,17 +127,17 @@ function(input, output, session) {
     if (isTRUE(input$size_mode == "diameter")) {
       paste0(
         "Total Dough Weight: ",
-        format(round(total_target_weight(), 1), big.mark = ","),
+        format(round(total_target_weight()), big.mark = ","),
         "g (",
-        round(per_pizza_weight(), 1),
+        round(per_pizza_weight()),
         "g per ",
-        input$pizza_diameter,
+        round(input$pizza_diameter),
         " in pizza)"
       )
     } else {
       paste0(
         "Total Dough Weight: ",
-        format(round(total_target_weight(), 1), big.mark = ","),
+        format(round(total_target_weight()), big.mark = ","),
         "g"
       )
     }
@@ -148,6 +158,21 @@ function(input, output, session) {
         )
       ),
       ")"
+    )
+  })
+
+  output$per_ball_summary <- renderText({
+    paste0(round(per_pizza_weight()), " g each")
+  })
+
+  output$flour_summary <- renderText({
+    paste0(round(flour_weight(), 0), " g flour")
+  })
+
+  output$formula_summary <- renderText({
+    paste0(
+      round(total_bakers_pct()),
+      "% total formula"
     )
   })
 
