@@ -53,7 +53,8 @@ page_navbar(
   theme = app_theme,
   fillable = TRUE,
   header = tags$head(
-    tags$style(HTML("
+    tags$style(HTML(
+      "
       :root {
         --db-bg: #f4efe8;
         --db-surface: rgba(255, 251, 245, 0.92);
@@ -261,6 +262,18 @@ page_navbar(
         margin-top: 1rem;
       }
 
+      .size-controls-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        align-items: start;
+      }
+
+      .size-control-slot .shiny-input-container {
+        width: 100%;
+        margin-bottom: 0;
+      }
+
       .stat-card {
         min-height: 100%;
       }
@@ -419,8 +432,13 @@ page_navbar(
         table.dataTable {
           min-width: 360px;
         }
+
+        .size-controls-grid {
+          grid-template-columns: 1fr;
+        }
       }
-    "))
+    "
+    ))
   ),
 
   nav_panel(
@@ -475,6 +493,16 @@ page_navbar(
           max = 10,
           step = 0.5
         ),
+        conditionalPanel(
+          condition = "input.size_mode === 'diameter'",
+          numericInput(
+            "g_per_sq_in",
+            "Dough Weight per sq in (g)",
+            value = 2.2,
+            min = 1,
+            step = 1
+          )
+        ),
         hr(),
         actionButton("reset", "Reset to Defaults", icon = icon("undo"))
       ),
@@ -492,8 +520,8 @@ page_navbar(
             ),
             div(
               class = "target-controls",
-              layout_columns(
-                col_widths = c(4, 4, 4),
+              div(
+                class = "size-controls-grid",
                 radioButtons(
                   "size_mode",
                   "Size Input Method",
@@ -503,45 +531,42 @@ page_navbar(
                   ),
                   selected = "diameter"
                 ),
-                numericInput(
-                  "num_balls",
-                  "Number of Dough Balls",
-                  value = 3,
-                  min = 1,
-                  step = 1
-                ),
-                conditionalPanel(
-                  condition = "input.size_mode === 'weight'",
+                div(
+                  class = "size-control-slot",
                   numericInput(
-                    "ball_weight",
-                    "Weight per Ball (g)",
-                    value = 250,
-                    min = 50,
-                    step = 5
-                  )
-                ),
-                conditionalPanel(
-                  condition = "input.size_mode === 'diameter'",
-                  numericInput(
-                    "pizza_diameter",
-                    "Pizza Diameter (inches)",
-                    value = 12,
-                    min = 6,
-                    step = 1
-                  )
-                ),
-                conditionalPanel(
-                  condition = "input.size_mode === 'diameter'",
-                  numericInput(
-                    "g_per_sq_in",
-                    "Dough Weight per sq in (g)",
-                    value = 2.2,
+                    "num_balls",
+                    "Number of Dough Balls",
+                    value = 3,
                     min = 1,
                     step = 1
+                  )
+                ),
+                div(
+                  class = "size-control-slot",
+                  conditionalPanel(
+                    condition = "input.size_mode === 'weight'",
+                    numericInput(
+                      "ball_weight",
+                      "Weight per Ball (g)",
+                      value = 250,
+                      min = 50,
+                      step = 5
+                    )
+                  ),
+                  conditionalPanel(
+                    condition = "input.size_mode === 'diameter'",
+                    numericInput(
+                      "pizza_diameter",
+                      "Pizza Diameter (inches)",
+                      value = 12,
+                      min = 6,
+                      step = 1
+                    )
                   )
                 )
               )
             ),
+            DTOutput("recipe_table"),
             div(
               class = "quick-stats",
               layout_columns(
@@ -550,26 +575,14 @@ page_navbar(
                   class = "stat-card",
                   card_body(
                     span(class = "stat-label", "Total Dough"),
-                    div(class = "stat-value stat-value--compact", textOutput("total_dough_weight"))
-                  )
-                ),
-                card(
-                  class = "stat-card",
-                  card_body(
-                    span(class = "stat-label", "Per Ball"),
-                    div(class = "stat-value stat-value--compact", textOutput("per_ball_summary"))
-                  )
-                ),
-                card(
-                  class = "stat-card",
-                  card_body(
-                    span(class = "stat-label", "Formula"),
-                    div(class = "stat-value stat-value--compact", textOutput("formula_summary"))
+                    div(
+                      class = "stat-value stat-value--compact",
+                      textOutput("total_dough_weight")
+                    )
                   )
                 )
               )
-            ),
-            DTOutput("recipe_table")
+            )
           )
         ),
         card(
@@ -615,7 +628,10 @@ page_navbar(
       div(
         class = "recipes-intro",
         div(class = "section-kicker", "Reference Library"),
-        h2(class = "recipes-title", "Starter combinations for planning your next bake"),
+        h2(
+          class = "recipes-title",
+          "Starter combinations for planning your next bake"
+        ),
         p(
           class = "section-copy",
           "Use these as quick assembly references once your dough formula is set. The presentation is intentionally simple so you can scan ingredients at a glance."
@@ -629,7 +645,10 @@ page_navbar(
           card_body(
             div(class = "section-kicker", "Recipes"),
             h3("No recipes available"),
-            p(class = "section-copy", "Add entries to `recipes.yml` to populate this section.")
+            p(
+              class = "section-copy",
+              "Add entries to `recipes.yml` to populate this section."
+            )
           )
         )
       }
